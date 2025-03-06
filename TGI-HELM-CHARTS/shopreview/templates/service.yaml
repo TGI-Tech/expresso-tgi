@@ -3,7 +3,8 @@ kind: Service
 metadata:
   name: {{ include "shopreview.fullname" . }}
   labels:
-    {{- include "shopreview.labels" . | nindent 4 }}
+    version: {{ .Values.deployment.version }}
+    version: {{ .Values.deployment.version2 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +13,6 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "shopreview.selectorLabels" . | nindent 4 }}
+    app: {{ .Values.deployment.name }}
+    app: {{ .Values.deployment.name2 }}
+    

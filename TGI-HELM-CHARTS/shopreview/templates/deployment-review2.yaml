@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name2 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Values.deployment.name2 }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployment.name }}
+        version: {{ .Values.deployment.version }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name2 }}
+      containers:
+        - name: {{ .Values.container.name2 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.configmap.name2 }}
+
+
+

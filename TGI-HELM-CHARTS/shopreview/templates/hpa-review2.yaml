@@ -2,14 +2,12 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "shopreview.fullname" . }}
-  labels:
-    {{- include "shopreview.labels" . | nindent 4 }}
+  name: {{ .Values.autoscaling.name2 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "shopreview.fullname" . }}
+    name: {{ .Values.deployment.name2 }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

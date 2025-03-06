@@ -30,6 +30,7 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: shop-review-1-sa
+   name2: shop-review-2-sa
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
@@ -98,9 +99,11 @@ readinessProbe:
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: true
+  name: shop-review-1-hpa
+  name2: shop-review-2-hpa
   minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
@@ -124,7 +127,16 @@ affinity: {}
 
 deployment: 
   name: shop-review-1
+  name2: shop-review-2
   version: v1
+  version2: v2
 
 container:
   name: shop-review-1-v1
+  name2: shop-review-2-v2
+
+configmap: 
+  name: shop-review-1-config
+  version: v1
+  name: shop-review-2-config
+  version2: v2
