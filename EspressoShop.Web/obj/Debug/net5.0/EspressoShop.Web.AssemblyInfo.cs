@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EspressoShop.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f67f2d750dc9adf087346f48e6241ed79fcbf31a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6e93dcf41031566a1776f6a4bfcc03836c182e49")]
 [assembly: System.Reflection.AssemblyProductAttribute("EspressoShop.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EspressoShop.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

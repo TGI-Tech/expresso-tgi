@@ -1,0 +1,22 @@
+shop-web (frontend)
+  deployment
+  hpa
+  services(external)
+  configmap
+  service-account
+
+shop-product-catalog
+  deployment
+  hpa
+  services(internal)
+  configmap
+  secret
+  service-account
+  
+shop-review(v1 and v2)
+  deployment
+  hpa
+  services(internal)
+  configmap
+  secret
+  service-account

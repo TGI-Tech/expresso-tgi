@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-review-2
+spec:
+  selector:
+    matchLabels:
+      app: shop-review-2
+  template:
+    metadata:
+      labels:
+        app: shop-review-2
+        version: v2
+    spec:
+      serviceAccountName: shop-review-2-sa
+      containers:
+        - name: shop-review-2-v2
+          image: tgitech/expresso-project:reviews
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: shop-review-2-config
+            - secretRef:
+                name: shop-review-2-secret
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shop-review-2-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shop-review-2
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-reviews
+spec:
+  type: ClusterIP
+  selector:
+    app: shop-review-2
+    app: shop-review-1
+  ports:
+    - protocol: TCP
+      port: 8092
+      targetPort: 80
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-review-2-config
+data:
+  SERVICE_VERSION: "v2"
+  # FEATURE_FLAG: enabled
+  
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: shop-review-2-secret
+type: Opaque
+data:
+  # DB_PASSWORD: cGFzc3dvcmQ=
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shop-review-2-sa
