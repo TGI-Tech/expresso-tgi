@@ -12,8 +12,8 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Values.deployment.name }}
-        version: {{ .Values.deployment.version }}
+        app: {{ .Values.deployment.name2 }}
+        version: {{ .Values.deployment.version2 }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name2 }}
       containers:

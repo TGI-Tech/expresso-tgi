@@ -1,0 +1,118 @@
+NAME: productcatalog
+LAST DEPLOYED: Tue Mar 18 12:06:29 2025
+NAMESPACE: expresso
+STATUS: pending-install
+REVISION: 1
+HOOKS:
+---
+# Source: productcatalog/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "productcatalog-test-connection"
+  labels:
+    helm.sh/chart: productcatalog-0.1.0
+    app.kubernetes.io/name: productcatalog
+    app.kubernetes.io/instance: productcatalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['productcatalog:8091']
+  restartPolicy: Never
+MANIFEST:
+---
+# Source: productcatalog/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shop-product-catalog-sa
+---
+# Source: productcatalog/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-product-catalog
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8091
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: shop-product-catalog
+    version: v1
+---
+# Source: productcatalog/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-product-catalog
+spec:
+  selector:
+    matchLabels:
+      app: shop-product-catalog
+  template:
+    metadata:
+      labels:
+        app: shop-product-catalog
+        version: v1
+    spec:
+      serviceAccountName: shop-product-catalog-sa
+      containers:
+        - name: shop-product-catalog
+          image: "tgitech/expresso-project:catalog"
+          ports:
+            - containerPort: 8091
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-product-catalog
+spec:
+  selector:
+    matchLabels:
+      app: shop-product-catalog
+  template:
+    metadata:
+      labels:
+        app: shop-product-catalog
+        version: v1
+    spec:
+      serviceAccountName: shop-product-catalog-sa
+      containers:
+        - name: shop-product-catalog
+          image: "tgitech/expresso-project:catalog"
+          ports:
+            - containerPort: 8091
+---
+# Source: productcatalog/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shop-product-catalog-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shop-product-catalog
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace expresso -l "app.kubernetes.io/name=productcatalog,app.kubernetes.io/instance=productcatalog" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace expresso $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace expresso port-forward $POD_NAME 8080:$CONTAINER_PORT

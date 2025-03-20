@@ -1,0 +1,175 @@
+NAME: shopreview
+LAST DEPLOYED: Tue Mar 18 11:19:08 2025
+NAMESPACE: expresso
+STATUS: pending-install
+REVISION: 1
+HOOKS:
+---
+# Source: shopreview/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "shopreview-test-connection"
+  labels:
+    helm.sh/chart: shopreview-0.1.0
+    app.kubernetes.io/name: shopreview
+    app.kubernetes.io/instance: shopreview
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['shopreview:8092']
+  restartPolicy: Never
+MANIFEST:
+---
+# Source: shopreview/templates/serviceaccount-review1.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shop-review-1-sa
+---
+# Source: shopreview/templates/serviceaccount-review2.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shop-review-2-sa
+---
+# Source: shopreview/templates/configmap-review1.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-review-1-config
+data:
+  SERVICE_VERSION: v1
+  # FEATURE_FLAG: enabled
+---
+# Source: shopreview/templates/configmap-review2.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-review-2-config
+data:
+  SERVICE_VERSION: v2
+  # FEATURE_FLAG: enabled
+---
+# Source: shopreview/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopreview
+  labels:
+    version: v1
+    version: v2
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8092
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: shop-review-1
+    app: shop-review-2
+---
+# Source: shopreview/templates/deployment-review1.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-review-1
+spec:
+  selector:
+    matchLabels:
+      app: shop-review-1
+  template:
+    metadata:
+      labels:
+        app: shop-review-1
+        version: v1
+    spec:
+      serviceAccountName: shop-review-1-sa
+      containers:
+        - name: shop-review-1-v1
+          image: "tgitech/expresso-project:reviews"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8092
+          envFrom:
+            - configMapRef:
+                name: shop-review-1-config
+---
+# Source: shopreview/templates/deployment-review2.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-review-2
+spec:
+  selector:
+    matchLabels:
+      app: shop-review-2
+  template:
+    metadata:
+      labels:
+        app: shop-review-2
+        version: v2
+    spec:
+      serviceAccountName: shop-review-2-sa
+      containers:
+        - name: shop-review-2-v2
+          image: "tgitech/expresso-project:reviews"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8092
+          envFrom:
+            - configMapRef:
+                name: shop-review-2-config
+---
+# Source: shopreview/templates/hpa-review1.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shop-review-1-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shop-review-1
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+# Source: shopreview/templates/hpa-review2.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shop-review-2-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shop-review-2
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace expresso -l "app.kubernetes.io/name=shopreview,app.kubernetes.io/instance=shopreview" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace expresso $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace expresso port-forward $POD_NAME 8080:$CONTAINER_PORT
